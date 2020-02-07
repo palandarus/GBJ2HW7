@@ -34,6 +34,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JList<String> userList = new JList<>();
     private boolean shownIoErrors = false;
     private SocketThread socketThread;
+    private String nickname = "";
 
     private ClientGUI() {
         Thread.setDefaultUncaughtExceptionHandler(this);
@@ -128,10 +129,24 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
 
     private void putLog(String msg) {
         if ("".equals(msg)) return;
-        SwingUtilities.invokeLater(() -> {
-            log.append(msg + "\n");
-            log.setCaretPosition(log.getDocument().getLength());
-        });
+        String[] arr = msg.split(Library.DELIMITER);
+        if (arr.length == 4) {
+            if (!arr[3].split(" ")[0].equals(nickname)) SwingUtilities.invokeLater(() -> {
+//                log.append(msg + "\n");
+//                log.setCaretPosition(log.getDocument().getLength());
+            });
+        }
+
+        if ("/auth_accept".equals(arr[0])) {
+            SwingUtilities.invokeLater(() -> {
+                nickname = arr[1].split(" ")[0];
+                log.append("Вы успешно авторизовались\n");
+                log.setCaretPosition(log.getDocument().getLength());
+            });
+            return;
+        }
+
+
     }
 
     private void showException(Thread t, Throwable e) {
