@@ -11,6 +11,12 @@ import java.awt.event.ActionListener;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, SocketThreadListener {
 
@@ -34,6 +40,7 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JList<String> userList = new JList<>();
     private boolean shownIoErrors = false;
     private SocketThread socketThread;
+    private String nickname = "";
 
     private ClientGUI() {
         Thread.setDefaultUncaughtExceptionHandler(this);
@@ -128,10 +135,36 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
 
     private void putLog(String msg) {
         if ("".equals(msg)) return;
-        SwingUtilities.invokeLater(() -> {
-            log.append(msg + "\n");
-            log.setCaretPosition(log.getDocument().getLength());
-        });
+        String[] arr = msg.split(Library.DELIMITER);
+        if (arr.length == 4) {
+            SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ", Locale.US);
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTimeInMillis(Long.parseLong(arr[1]));
+            String mes = sDF.format(calendar.getTime()) + " ";
+            String nick = arr[3].split(" ")[0];
+            if (!nick.equals(nickname)) SwingUtilities.invokeLater(() -> {
+                log.append(mes + nick + " вошел в чат \n");
+                log.setCaretPosition(log.getDocument().getLength());
+            });
+        } else if ("/auth_accept".equals(arr[0])) {
+            SwingUtilities.invokeLater(() -> {
+                nickname = arr[1].split(" ")[0];
+                log.append("Вы успешно авторизовались\n");
+                log.setCaretPosition(log.getDocument().getLength());
+            });
+        } else if (arr.length == 3) {
+            if (arr[1].equals(nickname)) {
+                SwingUtilities.invokeLater(() -> {
+                    log.append(arr[0] + " Вы: " + arr[2] + "\n");
+                    log.setCaretPosition(log.getDocument().getLength());
+                });
+            } else SwingUtilities.invokeLater(() -> {
+                log.append(arr[0] + " " + arr[1] + ": " + arr[2] + "\n");
+                log.setCaretPosition(log.getDocument().getLength());
+            });
+        }
+
+
     }
 
     private void showException(Thread t, Throwable e) {

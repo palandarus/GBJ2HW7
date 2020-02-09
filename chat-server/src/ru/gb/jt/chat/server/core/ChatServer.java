@@ -10,6 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.Vector;
 
 public class ChatServer implements ServerSocketThreadListener, SocketThreadListener {
@@ -134,7 +136,10 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
     }
 
     private void handleAuthMessage(ClientThread client, String msg) {
-        sendToAuthClients(msg);
+        SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ", Locale.US);
+        GregorianCalendar calendar = new GregorianCalendar();
+        String mes = sDF.format(calendar.getTime()) + Library.DELIMITER + client.getNickname() + Library.DELIMITER;
+        sendToAuthClients(mes + msg);
     }
 
     private void sendToAuthClients(String msg) {
